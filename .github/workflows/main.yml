@@ -25,7 +25,7 @@ jobs:
         with:
           # Reemplace la siguiente línea con su clave de autenticación real de Tailscale.
           # Asegúrese de mantener las comillas.
-          authkey: "tskey-auth-SU-CLAVE-AQUI"
+          authkey: "tskey-auth-kTn5ztmQ3u11CNTRL-WcRKFAE4a1Gnib7o9QAczFwW5TA5pK1z"
 
       - name: Mostrar Credenciales de Conexión
         run: |
