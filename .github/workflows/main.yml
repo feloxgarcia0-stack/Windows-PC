@@ -1,49 +1,33 @@
 name: Windows RDP con Tailscale
 
-# Permite iniciar este workflow manualmente desde la pestaña Actions
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    # Utiliza la última versión de Windows Server disponible en GitHub Actions
     runs-on: windows-latest
-    
     steps:
       - name: Configurar Escritorio Remoto (RDP)
         run: |
-          # Habilita el servicio de Escritorio Remoto en la máquina virtual
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
-          
-          # Deshabilita la Autenticación a Nivel de Red (NLA) para una mayor compatibilidad con clientes RDP
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 0
-          
-          # Crea una regla en el Firewall de Windows para permitir las conexiones entrantes de RDP
           netsh advfirewall firewall add rule name="Allow RDP" dir=in action=allow protocol=TCP localport=3389
 
       - name: Crear Usuario y Contraseña Segura
         run: |
-          # Genera una contraseña aleatoria y segura de 14 caracteres alfanuméricos
           $Password = -join ((65..90) + (97..122) + (48..57) | Get-Random -Count 14 | ForEach-Object {[char]$_})
-          
-          # Crea un nuevo usuario llamado 'Runner' con la contraseña generada
           net user /add Runner $Password
-          
-          # Añade el nuevo usuario al grupo de Administradores locales
           net localgroup administrators Runner /add
-          
-          # Guarda la contraseña de forma segura en una variable de entorno para el siguiente paso
           echo "RDP_PASSWORD=$Password" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Instalar y Conectar Tailscale
-        # Utiliza la acción oficial de Tailscale para instalar y conectar el cliente
         uses: tailscale/github-action@v2
         with:
-          # Utiliza la clave de autenticación que guardamos en los Secretos de GitHub
-          authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+          # Reemplace la siguiente línea con su clave de autenticación real de Tailscale.
+          # Asegúrese de mantener las comillas.
+          authkey: "tskey-auth-SU-CLAVE-AQUI"
 
       - name: Mostrar Credenciales de Conexión
-        # Este paso imprime la información necesaria para que usted se conecte
         run: |
           echo "--- CREDENCIALES DE ACCESO RDP ---"
           echo "Dirección IP (PC Name): $(tailscale ip -4)"
@@ -52,5 +36,4 @@ jobs:
           echo "----------------------------------"
 
       - name: Mantener la Conexión Activa
-        # Mantiene la máquina virtual en ejecución durante el límite máximo de 6 horas (21600 segundos)
         run: Start-Sleep -Seconds 21600
